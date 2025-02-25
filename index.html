@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cờ Caro 2 Người</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #game-container {
+            position: relative;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-gap: 4px;
+            background-color: #333;
+            padding: 4px;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .cell.x {
+            color: red;
+            animation: slideUp 0.4s ease;
+        }
+        .cell.o {
+            color: #00f;
+            animation: slideUp 0.4s ease;
+        }
+        .cell:hover {
+            background-color: #ddd;
+        }
+        @keyframes slideUp {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .cell.x, .cell.o {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 24px;
+        }
+        #reset {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #reset:hover {
+            background-color: #45a049;
+        }
+        #win-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="board"></div>
+        <canvas id="win-line" width="500" height="500"></canvas>
+    </div>
+    <div id="status">Lượt của X</div>
+    <button id="reset" onclick="resetGame()">Chơi lại</button>
+
+    <script>
+        const board = document.getElementById('board');
+        const status = document.getElementById('status');
+        const canvas = document.getElementById('win-line');
+        const ctx = canvas.getContext('2d');
+        let cells = [];
+        let currentPlayer = 'X';
+        let gameActive = true;
+        let winningCells = [];
+
+        // Tạo bảng 8x8
+        function createBoard() {
+            for (let i = 0; i < 64; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.addEventListener('click', () => handleClick(i));
+                board.appendChild(cell);
+                cells.push(cell);
+            }
+        }
+
+        // Xử lý khi nhấn ô
+        function handleClick(index) {
+            if (!gameActive || cells[index].textContent !== '') return;
+
+            cells[index].textContent = currentPlayer;
+            cells[index].classList.add(currentPlayer.toLowerCase());
+            if (checkWin()) {
+                status.textContent = `${currentPlayer} thắng!`;
+                gameActive = false;
+                drawWinningLine();
+            } else if (cells.every(cell => cell.textContent !== '')) {
+                status.textContent = 'Hòa!';
+                gameActive = false;
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                status.textContent = `Lượt của ${currentPlayer}`;
+            }
+        }
+
+        // Kiểm tra thắng (5 ô liên tiếp)
+        function checkWin() {
+            const winConditions = [];
+            const size = 8;
+
+            // Hàng ngang
+            for (let row = 0; row < size; row++) {
+                for (let col = 0; col <= size - 5; col++) {
+                    winConditions.push(Array.from({length: 5}, (_, i) => row * size + col + i));
+                }
+            }
+
+            // Hàng dọc
+            for (let col = 0; col < size; col++) {
+                for (let row = 0; row <= size - 5; row++) {
+                    winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col));
+                }
+            }
+
+            // Chéo chính (từ trái trên xuống phải dưới)
+            for (let row = 0; row <= size - 5; row++) {
+                for (let col = 0; col <= size - 5; col++) {
+                    winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col + i));
+                }
+            }
+
+            // Chéo phụ (từ phải trên xuống trái dưới)
+            for (let row = 0; row <= size - 5; row++) {
+                for (let col = size - 1; col >= 4; col--) {
+                    winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col - i));
+                }
+            }
+
+            for (let condition of winConditions) {
+                if (condition.every(index => cells[index].textContent === currentPlayer)) {
+                    winningCells = condition;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Vẽ đường gạch khi thắng
+        function drawWinningLine() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.strokeStyle = 'blue';
+            ctx.lineWidth = 5;
+
+            const startIdx = winningCells[0];
+            const endIdx = winningCells[4];
+            const startX = (startIdx % 8) * 64 + 32;
+            const startY = Math.floor(startIdx / 8) * 64 + 32;
+            const endX = (endIdx % 8) * 64 + 32;
+            const endY = Math.floor(endIdx / 8) * 64 + 32;
+
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+        }
+
+        // Reset game
+        function resetGame() {
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('x', 'o');
+            });
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            currentPlayer = 'X';
+            gameActive = true;
+            winningCells = [];
+            status.textContent = 'Lượt của X';
+        }
+
+        // Khởi tạo bảng
+        createBoard();
+    </script>
+</body>
+</html>
