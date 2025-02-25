@@ -21,45 +21,47 @@
             border-radius: 15px;
             padding: 10px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
         }
         #board {
             display: grid;
-            grid-template-columns: repeat(8, 60px);
-            grid-gap: 4px;
+            grid-template-columns: repeat(8, 1fr);
+            grid-gap: 2px;
             background-color: #2c3e50;
             padding: 4px;
             border-radius: 10px;
+            width: 100%;
+            aspect-ratio: 1 / 1;
         }
         .cell {
-            width: 60px;
-            height: 60px;
             background-color: #ecf0f1;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
+            font-size: 5vw;
             font-weight: bold;
             cursor: pointer;
             user-select: none;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+            transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.1s ease;
             border-radius: 5px;
         }
         .cell.x {
             color: #e74c3c;
-            animation: slideUp 0.4s ease;
+            animation: appear 0.1s ease; /* Giảm thời gian animation */
         }
         .cell.o {
             color: #3498db;
-            animation: slideUp 0.4s ease;
+            animation: appear 0.1s ease;
         }
         .cell:hover {
             transform: scale(1.05);
             background-color: #dfe4ea;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        @keyframes slideUp {
-            0% { transform: translateY(20px); opacity: 0; }
-            100% { transform: translateY(0); opacity: 1; }
+        @keyframes appear {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
         }
         .cell.x, .cell.o {
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
@@ -95,6 +97,8 @@
             position: absolute;
             top: 0;
             left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
         }
     </style>
@@ -102,7 +106,7 @@
 <body>
     <div id="game-container">
         <div id="board"></div>
-        <canvas id="win-line" width="500" height="500"></canvas>
+        <canvas id="win-line"></canvas>
     </div>
     <div id="status">Lượt của X</div>
     <button id="reset" onclick="resetGame()">Chơi lại</button>
@@ -117,15 +121,24 @@
         let gameActive = true;
         let winningCells = [];
 
+        // Đặt kích thước canvas theo #board
+        function resizeCanvas() {
+            const boardRect = board.getBoundingClientRect();
+            canvas.width = boardRect.width;
+            canvas.height = boardRect.height;
+        }
+
         // Tạo bảng 8x8
         function createBoard() {
             for (let i = 0; i < 64; i++) {
                 const cell = document.createElement('div');
                 cell.classList.add('cell');
+                cell.addEventListener('touchstart', (e) => { e.preventDefault(); handleClick(i); }, { passive: false });
                 cell.addEventListener('click', () => handleClick(i));
                 board.appendChild(cell);
                 cells.push(cell);
             }
+            resizeCanvas();
         }
 
         // Xử lý khi nhấn ô
@@ -152,28 +165,21 @@
             const winConditions = [];
             const size = 8;
 
-            // Hàng ngang
             for (let row = 0; row < size; row++) {
                 for (let col = 0; col <= size - 5; col++) {
                     winConditions.push(Array.from({length: 5}, (_, i) => row * size + col + i));
                 }
             }
-
-            // Hàng dọc
             for (let col = 0; col < size; col++) {
                 for (let row = 0; row <= size - 5; row++) {
                     winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col));
                 }
             }
-
-            // Chéo chính (từ trái trên xuống phải dưới)
             for (let row = 0; row <= size - 5; row++) {
                 for (let col = 0; col <= size - 5; col++) {
                     winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col + i));
                 }
             }
-
-            // Chéo phụ (từ phải trên xuống trái dưới)
             for (let row = 0; row <= size - 5; row++) {
                 for (let col = size - 1; col >= 4; col--) {
                     winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col - i));
@@ -194,25 +200,20 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const startIdx = winningCells[0];
             const endIdx = winningCells[4];
-            const cellSize = 60; // Kích thước ô
-            const gap = 4; // Khoảng cách giữa các ô
-            const padding = 10; // Padding của game-container
-            const offset = 4; // Padding của board
+            const cellSize = canvas.width / 8;
 
-            // Tính toán tọa độ chính xác
-            const startX = padding + offset + (startIdx % 8) * (cellSize + gap) + cellSize / 2;
-            const startY = padding + offset + Math.floor(startIdx / 8) * (cellSize + gap) + cellSize / 2;
-            const endX = padding + offset + (endIdx % 8) * (cellSize + gap) + cellSize / 2;
-            const endY = padding + offset + Math.floor(endIdx / 8) * (cellSize + gap) + cellSize / 2;
+            const startX = (startIdx % 8) * cellSize + cellSize / 2;
+            const startY = Math.floor(startIdx / 8) * cellSize + cellSize / 2;
+            const endX = (endIdx % 8) * cellSize + cellSize / 2;
+            const endY = Math.floor(endIdx / 8) * cellSize + cellSize / 2;
 
-            // Tạo gradient cho đường gạch
             const gradient = ctx.createLinearGradient(startX, startY, endX, endY);
-            gradient.addColorStop(0, '#f39c12'); // Màu cam
-            gradient.addColorStop(1, '#e74c3c'); // Màu đỏ
+            gradient.addColorStop(0, '#f39c12');
+            gradient.addColorStop(1, '#e74c3c');
 
             ctx.beginPath();
             ctx.strokeStyle = gradient;
-            ctx.lineWidth = 8;
+            ctx.lineWidth = cellSize / 7;
             ctx.shadowBlur = 10;
             ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
             ctx.lineCap = 'round';
@@ -220,7 +221,6 @@
             ctx.lineTo(endX, endY);
             ctx.stroke();
 
-            // Reset shadow
             ctx.shadowBlur = 0;
             ctx.shadowColor = 'transparent';
         }
@@ -240,6 +240,7 @@
 
         // Khởi tạo bảng
         createBoard();
+        window.addEventListener('resize', resizeCanvas);
     </script>
 </body>
 </html>
