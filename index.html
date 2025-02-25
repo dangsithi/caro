@@ -1,1 +1,239 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cờ Caro 2 Người</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #e0eafc, #cfdef3);
+        }
+        #game-container {
+            position: relative;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 400px;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-gap: 2px;
+            background-color: #2c3e50;
+            padding: 4px;
+            border-radius: 10px;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+        }
+        .cell {
+            background-color: #ecf0f1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5vw;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+            border-radius: 5px;
+        }
+        .cell.x {
+            color: #e74c3c;
+            animation: slideUp 0.4s ease;
+        }
+        .cell.o {
+            color: #3498db;
+            animation: slideUp 0.4s ease;
+        }
+        .cell:hover {
+            transform: scale(1.05);
+            background-color: #dfe4ea;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        @keyframes slideUp {
+            0% { transform: translateY(20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .cell.x, .cell.o {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 26px;
+            color: #2c3e50;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        #reset {
+            margin-top: 20px;
+            padding: 12px 24px;
+            font-size: 18px;
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        #reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+        #reset:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        #win-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="board"></div>
+        <canvas id="win-line"></canvas>
+    </div>
+    <div id="status">Lượt của X</div>
+    <button id="reset" onclick="resetGame()">Chơi lại</button>
 
+    <script>
+        const board = document.getElementById('board');
+        const status = document.getElementById('status');
+        const canvas = document.getElementById('win-line');
+        const ctx = canvas.getContext('2d');
+        let cells = [];
+        let currentPlayer = 'X';
+        let gameActive = true;
+        let winningCells = [];
+
+        function resizeCanvas() {
+            const boardRect = board.getBoundingClientRect();
+            canvas.width = boardRect.width;
+            canvas.height = boardRect.height;
+        }
+
+        function createBoard() {
+            for (let i = 0; i < 64; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.addEventListener('touchstart', (e) => { e.preventDefault(); handleClick(i); }, { passive: false });
+                cell.addEventListener('click', () => handleClick(i));
+                board.appendChild(cell);
+                cells.push(cell);
+            }
+            resizeCanvas();
+        }
+
+        function handleClick(index) {
+            if (!gameActive || cells[index].textContent !== '') return;
+
+            cells[index].textContent = currentPlayer;
+            cells[index].classList.add(currentPlayer.toLowerCase());
+            if (checkWin()) {
+                status.textContent = `${currentPlayer} thắng!`;
+                gameActive = false;
+                drawWinningLine();
+            } else if (cells.every(cell => cell.textContent !== '')) {
+                status.textContent = 'Hòa!';
+                gameActive = false;
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                status.textContent = `Lượt của ${currentPlayer}`;
+            }
+        }
+
+        function checkWin() {
+            const winConditions = [];
+            const size = 8;
+
+            for (let row = 0; row < size; row++) {
+                for (let col = 0; col <= size - 5; col++) {
+                    winConditions.push(Array.from({length: 5}, (_, i) => row * size + col + i));
+                }
+            }
+            for (let col = 0; col < size; col++) {
+                for (let row = 0; row <= size - 5; row++) {
+                    winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col));
+                }
+            }
+            for (let row = 0; row <= size - 5; row++) {
+                for (let col = 0; col <= size - 5; col++) {
+                    winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col + i));
+                }
+            }
+            for (let row = 0; row <= size - 5; row++) {
+                for (let col = size - 1; col >= 4; col--) {
+                    winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col - i));
+                }
+            }
+
+            for (let condition of winConditions) {
+                if (condition.every(index => cells[index].textContent === currentPlayer)) {
+                    winningCells = condition;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function drawWinningLine() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const startIdx = winningCells[0];
+            const endIdx = winningCells[4];
+            const cellSize = canvas.width / 8;
+
+            const startX = (startIdx % 8) * cellSize + cellSize / 2;
+            const startY = Math.floor(startIdx / 8) * cellSize + cellSize / 2;
+            const endX = (endIdx % 8) * cellSize + cellSize / 2;
+            const endY = Math.floor(endIdx / 8) * cellSize + cellSize / 2;
+
+            const gradient = ctx.createLinearGradient(startX, startY, endX, endY);
+            gradient.addColorStop(0, '#f39c12'); // Cam
+            gradient.addColorStop(1, '#e74c3c'); // Đỏ
+
+            ctx.beginPath();
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = cellSize / 7;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+            ctx.lineCap = 'round';
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
+        }
+
+        function resetGame() {
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('x', 'o');
+            });
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            currentPlayer = 'X';
+            gameActive = true;
+            winningCells = [];
+            status.textContent = 'Lượt của X';
+        }
+
+        createBoard();
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+</html>
