@@ -15,7 +15,7 @@
             margin: 0;
             background: linear-gradient(135deg, #e0eafc, #cfdef3);
             overflow-x: hidden;
-            -webkit-overflow-scrolling: touch; /* Tối ưu cuộn trên Safari */
+            -webkit-overflow-scrolling: touch;
         }
         #game-container {
             position: relative;
@@ -24,7 +24,7 @@
             padding: 6px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
             width: 90vw;
-            max-width: 400px; /* Phù hợp iPhone 14 Pro Max (430px) */
+            max-width: 380px; /* Tối ưu cho iPhone 14 Pro Max */
         }
         #board {
             display: grid;
@@ -35,7 +35,7 @@
             border-radius: 10px;
             width: 100%;
             aspect-ratio: 1 / 1;
-            -webkit-user-select: none; /* Tối ưu Safari */
+            -webkit-user-select: none;
             user-select: none;
         }
         .cell {
@@ -43,15 +43,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 4.5vw; /* Tăng font-size cho màn hình lớn */
+            font-size: 4vw; /* Tối ưu font-size */
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.1s ease, box-shadow 0.1s ease, background-color 0.1s ease;
             border-radius: 4px;
-            -webkit-tap-highlight-color: transparent; /* Loại bỏ highlight trên Safari */
+            -webkit-tap-highlight-color: transparent;
         }
         .cell.x {
-            color: #3DDC84; /* Xanh Android */
+            color: #e74c3c; /* Trở lại màu đỏ */
             animation: appear 0.1s ease;
         }
         .cell.o {
