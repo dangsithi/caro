@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cờ Caro 2 Người</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(5, 80px);
+            grid-gap: 5px;
+            background-color: #333;
+            padding: 5px;
+        }
+        .cell {
+            width: 80px;
+            height: 80px;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+        }
+        .cell.x {
+            color: red;
+        }
+        .cell:hover {
+            background-color: #ddd;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 24px;
+        }
+        #reset {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #reset:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div id="board"></div>
+    <div id="status">Lượt của X</div>
+    <button id="reset" onclick="resetGame()">Chơi lại</button>
+
+    <script>
+        const board = document.getElementById('board');
+        const status = document.getElementById('status');
+        let cells = [];
+        let currentPlayer = 'X';
+        let gameActive = true;
+
+        // Tạo bảng 5x5
+        function createBoard() {
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.addEventListener('click', () => handleClick(i));
+                board.appendChild(cell);
+                cells.push(cell);
+            }
+        }
+
+        // Xử lý khi nhấn ô
+        function handleClick(index) {
+            if (!gameActive || cells[index].textContent !== '') return;
+
+            cells[index].textContent = currentPlayer;
+            cells[index].classList.add(currentPlayer.toLowerCase());
+            if (checkWin()) {
+                status.textContent = `${currentPlayer} thắng!`;
+                gameActive = false;
+            } else if (cells.every(cell => cell.textContent !== '')) {
+                status.textContent = 'Hòa!';
+                gameActive = false;
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                status.textContent = `Lượt của ${currentPlayer}`;
+            }
+        }
+
+        // Kiểm tra thắng (5 ô liên tiếp)
+        function checkWin() {
+            const winConditions = [];
+            const size = 5;
+
+            // Hàng ngang
+            for (let row = 0; row < size; row++) {
+                for (let col = 0; col <= size - 5; col++) {
+                    winConditions.push(Array.from({length: 5}, (_, i) => row * size + col + i));
+                }
+            }
+
+            // Hàng dọc
+            for (let col = 0; col < size; col++) {
+                for (let row = 0; row <= size - 5; row++) {
+                    winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col));
+                }
+            }
+
+            // Chéo chính (từ trái trên xuống phải dưới)
+            for (let row = 0; row <= size - 5; row++) {
+                for (let col = 0; col <= size - 5; col++) {
+                    winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col + i));
+                }
+            }
+
+            // Chéo phụ (từ phải trên xuống trái dưới)
+            for (let row = 0; row <= size - 5; row++) {
+                for (let col = size - 1; col >= 4; col--) {
+                    winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col - i));
+                }
+            }
+
+            return winConditions.some(condition => {
+                return condition.every(index => cells[index].textContent === currentPlayer);
+            });
+        }
+
+        // Reset game
+        function resetGame() {
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('x', 'o');
+            });
+            currentPlayer = 'X';
+            gameActive = true;
+            status.textContent = 'Lượt của X';
+        }
+
+        // Khởi tạo bảng
+        createBoard();
+    </script>
+</body>
+</html>
