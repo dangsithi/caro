@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Cờ Caro 2 Người</title>
     <style>
         body {
@@ -11,9 +11,10 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             background: linear-gradient(135deg, #e0eafc, #cfdef3);
+            overflow-x: hidden;
         }
         #game-container {
             position: relative;
@@ -21,8 +22,8 @@
             border-radius: 15px;
             padding: 10px;
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 400px;
+            width: 90vw; /* Dùng đơn vị vw để vừa màn hình */
+            max-width: 360px; /* Giới hạn tối đa để không quá to */
         }
         #board {
             display: grid;
@@ -39,7 +40,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 5vw;
+            font-size: 4vw; /* Giảm font-size để vừa ô nhỏ */
             font-weight: bold;
             cursor: pointer;
             user-select: none;
@@ -48,7 +49,7 @@
         }
         .cell.x {
             color: #e74c3c;
-            animation: appear 0.1s ease; /* Giảm thời gian animation */
+            animation: appear 0.1s ease;
         }
         .cell.o {
             color: #3498db;
@@ -68,15 +69,15 @@
         }
         #status {
             margin-top: 20px;
-            font-size: 26px;
+            font-size: 20px; /* Giảm font-size để vừa màn hình nhỏ */
             color: #2c3e50;
             font-weight: bold;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
         }
         #reset {
             margin-top: 20px;
-            padding: 12px 24px;
-            font-size: 18px;
+            padding: 10px 20px;
+            font-size: 16px;
             background: linear-gradient(45deg, #27ae60, #2ecc71);
             color: white;
             border: none;
@@ -195,7 +196,7 @@
             return false;
         }
 
-        // Vẽ đường gạch đẹp và căn chỉnh chính xác
+        // Vẽ đường gạch gradient cam-đỏ
         function drawWinningLine() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const startIdx = winningCells[0];
@@ -208,11 +209,11 @@
             const endY = Math.floor(endIdx / 8) * cellSize + cellSize / 2;
 
             const gradient = ctx.createLinearGradient(startX, startY, endX, endY);
-            gradient.addColorStop(0, '#f39c12');
-            gradient.addColorStop(1, '#e74c3c');
+            gradient.addColorStop(0, '#f39c12'); // Cam
+            gradient.addColorStop(1, '#e74c3c'); // Đỏ
 
             ctx.beginPath();
-            ctx.strokeStyle = gradient;
+            ctx.strokeStyle = gradient; // Đảm bảo dùng gradient
             ctx.lineWidth = cellSize / 7;
             ctx.shadowBlur = 10;
             ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
