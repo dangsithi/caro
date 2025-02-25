@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cờ Caro 2 Người</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(8, 45px); /* 8 cột, mỗi ô 45px */
+            grid-gap: 2px;
+            background-color: #333;
+            padding: 5px;
+            position: relative;
+            width: 380px; /* Tổng chiều ngang: 8 * 45 + 7 * 2 + 10 = 384px, vừa với iPhone */
+        }
+        .cell {
+            width: 45px;
+            height: 45px;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+        }
+        .cell.x {
+            color: red;
+        }
+        .cell.o {
+            color: blue; /* Thêm màu cho O để dễ phân biệt */
+        }
+        .cell:hover {
+            background-color: #ddd;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 20px;
+        }
+        #reset {
+            margin-top: 20px;
+            padding: 8px 16px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #reset:hover {
+            background-color: #45a049;
+        }
+        .line {
+            position: absolute;
+            background-color: rgba(255, 0, 0, 0.7); /* Đường gạch đỏ, hơi trong */
+            pointer-events: none; /* Không cản tương tác */
+        }
+    </style>
+</head>
+<body>
+    <div id="board"></div>
+    <div id="status">Lượt của X</div>
+    <button id="reset" onclick="resetGame()">Chơi lại</button>
+
+    <script>
+        const board = document.getElementById('board');
+        const status = document.getElementById('status');
+        let cells = [];
+        let currentPlayer = 'X';
+        let gameActive = true;
+        const size = 8; // Kích thước bảng 8x8
+
+        // Tạo bảng 8x8
+        function createBoard() {
+            for (let i = 0; i < size * size; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.addEventListener('click', () => handleClick(i));
+                board.appendChild(cell);
+                cells.push(cell);
+            }
+        }
+
+        // Xử lý khi nhấn ô
+        function handleClick(index) {
+            if (!gameActive || cells[index].textContent !== '') return;
+
+            cells[index].textContent = currentPlayer;
+            cells[index].classList.add(currentPlayer.toLowerCase());
+
+            const winLine = checkWin();
+            if (winLine) {
+                status.textContent = `${currentPlayer} thắng!`;
+                gameActive = false;
+                drawWinLine(winLine); // Vẽ đường gạch khi thắng
+            } else if (cells.every(cell => cell.textContent !== '')) {
+                status.textContent = 'Hòa!';
+                gameActive = false;
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                status.textContent = `Lượt của ${currentPlayer}`;
+            }
+        }
+
+        // Kiểm tra thắng (5 ô liên tiếp) và trả về dãy thắng
+        function checkWin() {
+            const winConditions = [];
+
+            // Hàng ngang
+            for (let row = 0; row < size; row++) {
+                for (let col = 0; col <= size - 5; col++) {
+                    winConditions.push(Array.from({length: 5}, (_, i) => row * size + col + i));
+                }
+            }
+
+            // Hàng dọc
+            for (let col = 0; col < size; col++) {
+                for (let row = 0; row <= size - 5; row++) {
+                    winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col));
+                }
+            }
+
+            // Chéo chính (từ trái trên xuống phải dưới)
+            for (let row = 0; row <= size - 5; row++) {
+                for (let col = 0; col <= size - 5; col++) {
+                    winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col + i));
+                }
+            }
+
+            // Chéo phụ (từ phải trên xuống trái dưới)
+            for (let row = 0; row <= size - 5; row++) {
+                for (let col = size - 1; col >= 4; col--) {
+                    winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col - i));
+                }
+            }
+
+            for (const condition of winConditions) {
+                if (condition.every(index => cells[index].textContent === currentPlayer)) {
+                    return condition; // Trả về dãy thắng
+                }
+            }
+            return null; // Không có dãy thắng
+        }
+
+        // Vẽ đường gạch qua 5 ô thắng
+        function drawWinLine(winLine) {
+            const firstIndex = winLine[0];
+            const lastIndex = winLine[4];
+            const firstCell = cells[firstIndex];
+            const lastCell = cells[lastIndex];
+
+            const firstRect = firstCell.getBoundingClientRect();
+            const lastRect = lastCell.getBoundingClientRect();
+            const boardRect = board.getBoundingClientRect();
+
+            const line = document.createElement('div');
+            line.classList.add('line');
+
+            const x1 = firstRect.left - boardRect.left + firstRect.width / 2;
+            const y1 = firstRect.top - boardRect.top + firstRect.height / 2;
+            const x2 = lastRect.left - boardRect.left + lastRect.width / 2;
+            const y2 = lastRect.top - boardRect.top + lastRect.height / 2;
+
+            const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+
+            line.style.width = `${length}px`;
+            line.style.height = '3px';
+            line.style.left = `${x1}px`;
+            line.style.top = `${y1}px`;
+            line.style.transform = `rotate(${angle}deg)`;
+            line.style.transformOrigin = '0 0';
+
+            board.appendChild(line);
+        }
+
+        // Reset game
+        function resetGame() {
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('x', 'o');
+            });
+            const lines = board.getElementsByClassName('line');
+            while (lines.length > 0) lines[0].remove();
+            currentPlayer = 'X';
+            gameActive = true;
+            status.textContent = 'Lượt của X';
+        }
+
+        // Khởi tạo bảng
+        createBoard();
+    </script>
+</body>
+</html>
