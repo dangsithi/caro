@@ -34,25 +34,25 @@
         }
         #board {
             display: grid;
-            grid-template-columns: repeat(7, 1fr); /* Chia đều theo chiều ngang */
+            grid-template-columns: repeat(7, 1fr);
             grid-gap: 2px;
             background-color: #333;
             padding: 5px;
             position: relative;
-            width: calc(100vw - 20px); /* Full chiều ngang, trừ padding */
-            max-width: 600px; /* Giới hạn tối đa để không quá to trên màn lớn */
-            aspect-ratio: 1 / 1; /* Giữ tỷ lệ vuông */
+            width: calc(100vw - 20px);
+            max-width: 600px;
+            aspect-ratio: 1 / 1;
         }
         .cell {
             background-color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: calc(4vw + 10px); /* Kích thước chữ tỷ lệ với màn hình */
+            font-size: calc(4vw + 10px);
             font-weight: bold;
             cursor: pointer;
             user-select: none;
-            aspect-ratio: 1 / 1; /* Ô vuông */
+            aspect-ratio: 1 / 1;
         }
         .cell.x {
             color: red;
@@ -77,8 +77,12 @@
         }
         .line {
             position: absolute;
-            background-color: rgba(255, 0, 0, 0.7);
+            background-color: #ff4444; /* Đỏ đậm hơn */
+            height: 6px; /* Dày hơn */
+            border-radius: 3px; /* Bo tròn nhẹ */
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Thêm bóng */
             pointer-events: none;
+            z-index: 10; /* Đảm bảo nằm trên ô */
         }
     </style>
 </head>
@@ -89,10 +93,16 @@
     <div id="board"></div>
     <button id="reset" onclick="resetGame()">Chơi lại</button>
 
+    <!-- Thêm âm thanh -->
+    <audio id="clickSound" src="click.mp3"></audio>
+    <audio id="winSound" src="win.mp3"></audio>
+
     <script>
         const board = document.getElementById('board');
         const status = document.getElementById('status');
         const turnIndicator = document.getElementById('turn-indicator');
+        const clickSound = document.getElementById('clickSound');
+        const winSound = document.getElementById('winSound');
         let cells = [];
         let currentPlayer = 'O';
         let gameActive = true;
@@ -122,12 +132,14 @@
 
             cells[index].textContent = currentPlayer;
             cells[index].classList.add(currentPlayer.toLowerCase());
+            clickSound.play(); // Phát tiếng click
 
             const winLine = checkWin();
             if (winLine) {
                 status.innerHTML = `<span id="turn-indicator" class="${currentPlayer.toLowerCase()}">${currentPlayer}</span> ${currentPlayer} thắng!`;
                 gameActive = false;
                 drawWinLine(winLine);
+                winSound.play(); // Phát tiếng thắng
             } else if (cells.every(cell => cell.textContent !== '')) {
                 status.textContent = 'Hòa!';
                 gameActive = false;
@@ -137,38 +149,29 @@
             }
         }
 
-        // Kiểm tra thắng (5 ô liên tiếp) và trả về dãy thắng
+        // Kiểm tra thắng (5 ô liên tiếp)
         function checkWin() {
             const winConditions = [];
-
-            // Hàng ngang
             for (let row = 0; row < size; row++) {
                 for (let col = 0; col <= size - 5; col++) {
                     winConditions.push(Array.from({length: 5}, (_, i) => row * size + col + i));
                 }
             }
-
-            // Hàng dọc
             for (let col = 0; col < size; col++) {
                 for (let row = 0; row <= size - 5; row++) {
                     winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col));
                 }
             }
-
-            // Chéo chính
             for (let row = 0; row <= size - 5; row++) {
                 for (let col = 0; col <= size - 5; col++) {
                     winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col + i));
                 }
             }
-
-            // Chéo phụ
             for (let row = 0; row <= size - 5; row++) {
                 for (let col = size - 1; col >= 4; col--) {
                     winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col - i));
                 }
             }
-
             for (const condition of winConditions) {
                 if (condition.every(index => cells[index].textContent === currentPlayer)) {
                     return condition;
@@ -177,7 +180,7 @@
             return null;
         }
 
-        // Vẽ đường gạch qua 5 ô thắng
+        // Vẽ đường gạch thắng
         function drawWinLine(winLine) {
             const firstIndex = winLine[0];
             const lastIndex = winLine[4];
@@ -200,7 +203,6 @@
             const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
 
             line.style.width = `${length}px`;
-            line.style.height = '3px';
             line.style.left = `${x1}px`;
             line.style.top = `${y1}px`;
             line.style.transform = `rotate(${angle}deg)`;
