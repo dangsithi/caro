@@ -14,7 +14,6 @@
             min-height: 100vh;
             margin: 0;
             background-color: #f0f0f0;
-            overflow: hidden; /* Tránh scroll khi pháo hoa xuất hiện */
         }
         #status {
             font-size: 28px;
@@ -78,24 +77,12 @@
         }
         .line {
             position: absolute;
-            background-color: #ff4444;
-            height: 6px;
-            border-radius: 3px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            background-color: #ff4444; /* Đỏ đậm hơn */
+            height: 6px; /* Dày hơn */
+            border-radius: 3px; /* Bo tròn nhẹ */
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Thêm bóng */
             pointer-events: none;
-            z-index: 10;
-        }
-        .firework {
-            position: absolute;
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background-color: red;
-            animation: explode 1s ease-out forwards;
-        }
-        @keyframes explode {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(0); opacity: 0; }
+            z-index: 10; /* Đảm bảo nằm trên ô */
         }
     </style>
 </head>
@@ -106,9 +93,9 @@
     <div id="board"></div>
     <button id="reset" onclick="resetGame()">Chơi lại</button>
 
-    <!-- Âm thanh -->
-    <audio id="clickSound" src="https://www.soundjay.com/buttons/beep-01a.mp3"></audio>
-    <audio id="winSound" src="https://www.soundjay.com/misc/sounds/tada.mp3"></audio>
+    <!-- Thêm âm thanh -->
+    <audio id="clickSound" src="click.mp3"></audio>
+    <audio id="winSound" src="win.mp3"></audio>
 
     <script>
         const board = document.getElementById('board');
@@ -145,7 +132,6 @@
 
             cells[index].textContent = currentPlayer;
             cells[index].classList.add(currentPlayer.toLowerCase());
-            clickSound.currentTime = 0; // Reset âm thanh về đầu
             clickSound.play(); // Phát tiếng click
 
             const winLine = checkWin();
@@ -154,7 +140,6 @@
                 gameActive = false;
                 drawWinLine(winLine);
                 winSound.play(); // Phát tiếng thắng
-                setTimeout(startFireworks, 2000); // Pháo hoa sau 2 giây
             } else if (cells.every(cell => cell.textContent !== '')) {
                 status.textContent = 'Hòa!';
                 gameActive = false;
@@ -226,23 +211,6 @@
             board.appendChild(line);
         }
 
-        // Hiệu ứng pháo hoa
-        function startFireworks() {
-            for (let i = 0; i < 30; i++) { // Tạo 30 hạt pháo hoa
-                const firework = document.createElement('div');
-                firework.classList.add('firework');
-                const x = Math.random() * window.innerWidth;
-                const y = Math.random() * window.innerHeight;
-                firework.style.left = `${x}px`;
-                firework.style.top = `${y}px`;
-                firework.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`; // Màu ngẫu nhiên
-                document.body.appendChild(firework);
-
-                // Xóa hạt sau khi animation kết thúc
-                setTimeout(() => firework.remove(), 1000);
-            }
-        }
-
         // Reset game
         function resetGame() {
             cells.forEach(cell => {
@@ -251,8 +219,6 @@
             });
             const lines = board.getElementsByClassName('line');
             while (lines.length > 0) lines[0].remove();
-            const fireworks = document.getElementsByClassName('firework');
-            while (fireworks.length > 0) fireworks[0].remove();
             currentPlayer = 'O';
             gameActive = true;
             updateStatus();
