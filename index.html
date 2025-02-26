@@ -16,42 +16,43 @@
             background-color: #f0f0f0;
         }
         #status {
-            font-size: 28px; /* Làm to chữ */
-            margin-bottom: 20px; /* Đưa lên trên bàn cờ */
+            font-size: 28px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
         }
         #turn-indicator {
-            font-size: 40px; /* Ký hiệu to hơn */
+            font-size: 40px;
             font-weight: bold;
             margin-right: 15px;
         }
         #turn-indicator.x {
-            color: red; /* Màu đỏ cho X */
+            color: red;
         }
         #turn-indicator.o {
-            color: blue; /* Màu xanh cho O */
+            color: blue;
         }
         #board {
             display: grid;
-            grid-template-columns: repeat(7, 45px); /* Giảm xuống 7x7 */
+            grid-template-columns: repeat(7, 1fr); /* Chia đều theo chiều ngang */
             grid-gap: 2px;
             background-color: #333;
             padding: 5px;
             position: relative;
-            width: 329px; /* 7 * 45 + 6 * 2 + 10 = 337px, điều chỉnh cho vừa */
+            width: calc(100vw - 20px); /* Full chiều ngang, trừ padding */
+            max-width: 600px; /* Giới hạn tối đa để không quá to trên màn lớn */
+            aspect-ratio: 1 / 1; /* Giữ tỷ lệ vuông */
         }
         .cell {
-            width: 45px;
-            height: 45px;
             background-color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
+            font-size: calc(4vw + 10px); /* Kích thước chữ tỷ lệ với màn hình */
             font-weight: bold;
             cursor: pointer;
             user-select: none;
+            aspect-ratio: 1 / 1; /* Ô vuông */
         }
         .cell.x {
             color: red;
@@ -93,9 +94,9 @@
         const status = document.getElementById('status');
         const turnIndicator = document.getElementById('turn-indicator');
         let cells = [];
-        let currentPlayer = 'O'; // O đi trước
+        let currentPlayer = 'O';
         let gameActive = true;
-        const size = 7; // Giảm xuống 7x7
+        const size = 7;
 
         // Tạo bảng 7x7
         function createBoard() {
@@ -111,7 +112,7 @@
         // Cập nhật trạng thái lượt chơi
         function updateStatus() {
             turnIndicator.textContent = currentPlayer;
-            turnIndicator.className = currentPlayer.toLowerCase(); // Cập nhật màu
+            turnIndicator.className = currentPlayer.toLowerCase();
             status.innerHTML = `<span id="turn-indicator" class="${currentPlayer.toLowerCase()}">${currentPlayer}</span> Lượt của ${currentPlayer}`;
         }
 
@@ -216,7 +217,7 @@
             });
             const lines = board.getElementsByClassName('line');
             while (lines.length > 0) lines[0].remove();
-            currentPlayer = 'O'; // O luôn đi trước
+            currentPlayer = 'O';
             gameActive = true;
             updateStatus();
         }
