@@ -15,14 +15,31 @@
             margin: 0;
             background-color: #f0f0f0;
         }
+        #status {
+            font-size: 28px; /* Làm to chữ */
+            margin-bottom: 20px; /* Đưa lên trên bàn cờ */
+            display: flex;
+            align-items: center;
+        }
+        #turn-indicator {
+            font-size: 40px; /* Ký hiệu to hơn */
+            font-weight: bold;
+            margin-right: 15px;
+        }
+        #turn-indicator.x {
+            color: red; /* Màu đỏ cho X */
+        }
+        #turn-indicator.o {
+            color: blue; /* Màu xanh cho O */
+        }
         #board {
             display: grid;
-            grid-template-columns: repeat(8, 45px);
+            grid-template-columns: repeat(7, 45px); /* Giảm xuống 7x7 */
             grid-gap: 2px;
             background-color: #333;
             padding: 5px;
             position: relative;
-            width: 380px;
+            width: 329px; /* 7 * 45 + 6 * 2 + 10 = 337px, điều chỉnh cho vừa */
         }
         .cell {
             width: 45px;
@@ -45,17 +62,6 @@
         .cell:hover {
             background-color: #ddd;
         }
-        #status {
-            margin-top: 20px;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-        }
-        #turn-indicator {
-            font-size: 30px;
-            font-weight: bold;
-            margin-right: 10px;
-        }
         #reset {
             margin-top: 20px;
             padding: 8px 16px;
@@ -76,10 +82,10 @@
     </style>
 </head>
 <body>
-    <div id="board"></div>
     <div id="status">
         <span id="turn-indicator" class="o">O</span> Lượt của O
     </div>
+    <div id="board"></div>
     <button id="reset" onclick="resetGame()">Chơi lại</button>
 
     <script>
@@ -89,9 +95,9 @@
         let cells = [];
         let currentPlayer = 'O'; // O đi trước
         let gameActive = true;
-        const size = 8;
+        const size = 7; // Giảm xuống 7x7
 
-        // Tạo bảng 8x8
+        // Tạo bảng 7x7
         function createBoard() {
             for (let i = 0; i < size * size; i++) {
                 const cell = document.createElement('div');
@@ -105,7 +111,7 @@
         // Cập nhật trạng thái lượt chơi
         function updateStatus() {
             turnIndicator.textContent = currentPlayer;
-            turnIndicator.className = currentPlayer.toLowerCase();
+            turnIndicator.className = currentPlayer.toLowerCase(); // Cập nhật màu
             status.innerHTML = `<span id="turn-indicator" class="${currentPlayer.toLowerCase()}">${currentPlayer}</span> Lượt của ${currentPlayer}`;
         }
 
