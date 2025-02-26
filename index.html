@@ -17,12 +17,12 @@
         }
         #board {
             display: grid;
-            grid-template-columns: repeat(8, 45px); /* 8 cột, mỗi ô 45px */
+            grid-template-columns: repeat(8, 45px);
             grid-gap: 2px;
             background-color: #333;
             padding: 5px;
             position: relative;
-            width: 380px; /* Tổng chiều ngang: 8 * 45 + 7 * 2 + 10 = 384px, vừa với iPhone */
+            width: 380px;
         }
         .cell {
             width: 45px;
@@ -40,7 +40,7 @@
             color: red;
         }
         .cell.o {
-            color: blue; /* Thêm màu cho O để dễ phân biệt */
+            color: blue;
         }
         .cell:hover {
             background-color: #ddd;
@@ -48,6 +48,13 @@
         #status {
             margin-top: 20px;
             font-size: 20px;
+            display: flex;
+            align-items: center;
+        }
+        #turn-indicator {
+            font-size: 30px;
+            font-weight: bold;
+            margin-right: 10px;
         }
         #reset {
             margin-top: 20px;
@@ -63,23 +70,26 @@
         }
         .line {
             position: absolute;
-            background-color: rgba(255, 0, 0, 0.7); /* Đường gạch đỏ, hơi trong */
-            pointer-events: none; /* Không cản tương tác */
+            background-color: rgba(255, 0, 0, 0.7);
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
     <div id="board"></div>
-    <div id="status">Lượt của X</div>
+    <div id="status">
+        <span id="turn-indicator" class="o">O</span> Lượt của O
+    </div>
     <button id="reset" onclick="resetGame()">Chơi lại</button>
 
     <script>
         const board = document.getElementById('board');
         const status = document.getElementById('status');
+        const turnIndicator = document.getElementById('turn-indicator');
         let cells = [];
-        let currentPlayer = 'X';
+        let currentPlayer = 'O'; // O đi trước
         let gameActive = true;
-        const size = 8; // Kích thước bảng 8x8
+        const size = 8;
 
         // Tạo bảng 8x8
         function createBoard() {
@@ -92,6 +102,13 @@
             }
         }
 
+        // Cập nhật trạng thái lượt chơi
+        function updateStatus() {
+            turnIndicator.textContent = currentPlayer;
+            turnIndicator.className = currentPlayer.toLowerCase();
+            status.innerHTML = `<span id="turn-indicator" class="${currentPlayer.toLowerCase()}">${currentPlayer}</span> Lượt của ${currentPlayer}`;
+        }
+
         // Xử lý khi nhấn ô
         function handleClick(index) {
             if (!gameActive || cells[index].textContent !== '') return;
@@ -101,15 +118,15 @@
 
             const winLine = checkWin();
             if (winLine) {
-                status.textContent = `${currentPlayer} thắng!`;
+                status.innerHTML = `<span id="turn-indicator" class="${currentPlayer.toLowerCase()}">${currentPlayer}</span> ${currentPlayer} thắng!`;
                 gameActive = false;
-                drawWinLine(winLine); // Vẽ đường gạch khi thắng
+                drawWinLine(winLine);
             } else if (cells.every(cell => cell.textContent !== '')) {
                 status.textContent = 'Hòa!';
                 gameActive = false;
             } else {
                 currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-                status.textContent = `Lượt của ${currentPlayer}`;
+                updateStatus();
             }
         }
 
@@ -131,14 +148,14 @@
                 }
             }
 
-            // Chéo chính (từ trái trên xuống phải dưới)
+            // Chéo chính
             for (let row = 0; row <= size - 5; row++) {
                 for (let col = 0; col <= size - 5; col++) {
                     winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col + i));
                 }
             }
 
-            // Chéo phụ (từ phải trên xuống trái dưới)
+            // Chéo phụ
             for (let row = 0; row <= size - 5; row++) {
                 for (let col = size - 1; col >= 4; col--) {
                     winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col - i));
@@ -147,10 +164,10 @@
 
             for (const condition of winConditions) {
                 if (condition.every(index => cells[index].textContent === currentPlayer)) {
-                    return condition; // Trả về dãy thắng
+                    return condition;
                 }
             }
-            return null; // Không có dãy thắng
+            return null;
         }
 
         // Vẽ đường gạch qua 5 ô thắng
@@ -193,9 +210,9 @@
             });
             const lines = board.getElementsByClassName('line');
             while (lines.length > 0) lines[0].remove();
-            currentPlayer = 'X';
+            currentPlayer = 'O'; // O luôn đi trước
             gameActive = true;
-            status.textContent = 'Lượt của X';
+            updateStatus();
         }
 
         // Khởi tạo bảng
