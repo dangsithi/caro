@@ -35,8 +35,8 @@
         #board {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            grid-gap: 2px;
-            background-color: #333;
+            grid-gap: 1px; /* Giảm từ 2px xuống 1px cho nét mảnh hơn */
+            background-color: #666; /* Màu nhạt hơn chút so với #333 để thanh thoát */
             padding: 5px;
             position: relative;
             width: calc(100vw - 20px);
@@ -51,31 +51,41 @@
             cursor: pointer;
             user-select: none;
             aspect-ratio: 1 / 1;
-            position: relative; /* Để chứa ảnh */
+            position: relative;
         }
         .cell img {
-            width: 80%; /* Điều chỉnh kích thước ảnh */
+            width: 80%;
             height: 80%;
-            object-fit: contain; /* Giữ tỷ lệ ảnh */
+            object-fit: contain;
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%); /* Căn giữa ảnh */
+            transform: translate(-50%, -50%);
         }
         .cell:hover {
             background-color: #ddd;
         }
         #reset {
             margin-top: 20px;
-            padding: 8px 16px;
-            font-size: 16px;
-            background-color: #4CAF50;
+            padding: 10px 24px; /* Tăng padding cho nút lớn hơn */
+            font-size: 18px; /* Tăng font-size */
+            font-weight: bold; /* Chữ đậm hơn */
+            background: linear-gradient(45deg, #4CAF50, #66bb6a); /* Gradient xanh */
             color: white;
             border: none;
+            border-radius: 20px; /* Bo tròn nhiều hơn */
             cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Thêm bóng */
+            transition: all 0.3s ease; /* Hiệu ứng mượt */
         }
         #reset:hover {
-            background-color: #45a049;
+            background: linear-gradient(45deg, #45a049, #5cb860); /* Gradient sáng hơn khi hover */
+            transform: translateY(-2px); /* Nâng nhẹ lên */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25); /* Bóng đậm hơn */
+        }
+        #reset:active {
+            transform: translateY(1px); /* Nhấn xuống khi click */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Giảm bóng */
         }
         .line {
             position: absolute;
@@ -131,7 +141,7 @@
             const img = document.createElement('img');
             img.src = currentPlayer === 'X' ? 'x.png' : 'o.png';
             cells[index].appendChild(img);
-            cells[index].dataset.player = currentPlayer; // Lưu player để kiểm tra thắng
+            cells[index].dataset.player = currentPlayer;
             clickSound.play();
 
             const winLine = checkWin();
@@ -212,7 +222,7 @@
         function resetGame() {
             cells.forEach(cell => {
                 cell.innerHTML = '';
-                cell.dataset.player = ''; // Xóa dữ liệu player
+                cell.dataset.player = '';
             });
             const lines = board.getElementsByClassName('line');
             while (lines.length > 0) lines[0].remove();
