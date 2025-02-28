@@ -22,21 +22,20 @@
             align-items: center;
         }
         #turn-indicator {
-            font-size: 40px;
-            font-weight: bold;
+            width: 40px; /* Kích thước cố định cho ảnh */
+            height: 40px;
             margin-right: 15px;
         }
-        #turn-indicator.x {
-            color: red;
-        }
-        #turn-indicator.o {
-            color: blue;
+        #turn-indicator img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
         #board {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            grid-gap: 1px; /* Giảm từ 2px xuống 1px cho nét mảnh hơn */
-            background-color: #666; /* Màu nhạt hơn chút so với #333 để thanh thoát */
+            grid-gap: 1px;
+            background-color: #666;
             padding: 5px;
             position: relative;
             width: calc(100vw - 20px);
@@ -67,25 +66,25 @@
         }
         #reset {
             margin-top: 20px;
-            padding: 10px 24px; /* Tăng padding cho nút lớn hơn */
-            font-size: 18px; /* Tăng font-size */
-            font-weight: bold; /* Chữ đậm hơn */
-            background: linear-gradient(45deg, #4CAF50, #66bb6a); /* Gradient xanh */
+            padding: 10px 24px;
+            font-size: 18px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #4CAF50, #66bb6a);
             color: white;
             border: none;
-            border-radius: 20px; /* Bo tròn nhiều hơn */
+            border-radius: 20px;
             cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Thêm bóng */
-            transition: all 0.3s ease; /* Hiệu ứng mượt */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
         }
         #reset:hover {
-            background: linear-gradient(45deg, #45a049, #5cb860); /* Gradient sáng hơn khi hover */
-            transform: translateY(-2px); /* Nâng nhẹ lên */
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25); /* Bóng đậm hơn */
+            background: linear-gradient(45deg, #45a049, #5cb860);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
         }
         #reset:active {
-            transform: translateY(1px); /* Nhấn xuống khi click */
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Giảm bóng */
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         .line {
             position: absolute;
@@ -100,7 +99,7 @@
 </head>
 <body>
     <div id="status">
-        <span id="turn-indicator" class="o">O</span> Lượt của O
+        <span id="turn-indicator"><img src="o.png" alt="O"></span>
     </div>
     <div id="board"></div>
     <button id="reset" onclick="resetGame()">Chơi lại</button>
@@ -130,9 +129,13 @@
         }
 
         function updateStatus() {
-            turnIndicator.textContent = currentPlayer;
-            turnIndicator.className = currentPlayer.toLowerCase();
-            status.innerHTML = `<span id="turn-indicator" class="${currentPlayer.toLowerCase()}">${currentPlayer}</span> Lượt của ${currentPlayer}`;
+            const img = document.createElement('img');
+            img.src = currentPlayer === 'X' ? 'x.png' : 'o.png';
+            img.alt = currentPlayer;
+            turnIndicator.innerHTML = '';
+            turnIndicator.appendChild(img);
+            status.innerHTML = '';
+            status.appendChild(turnIndicator);
         }
 
         function handleClick(index) {
@@ -146,7 +149,14 @@
 
             const winLine = checkWin();
             if (winLine) {
-                status.innerHTML = `<span id="turn-indicator" class="${currentPlayer.toLowerCase()}">${currentPlayer}</span> ${currentPlayer} thắng!`;
+                const winImg = document.createElement('img');
+                winImg.src = currentPlayer === 'X' ? 'x.png' : 'o.png';
+                winImg.alt = currentPlayer;
+                turnIndicator.innerHTML = '';
+                turnIndicator.appendChild(winImg);
+                status.innerHTML = '';
+                status.appendChild(turnIndicator);
+                status.insertAdjacentText('beforeend', ` ${currentPlayer} thắng!`);
                 gameActive = false;
                 drawWinLine(winLine);
                 winSound.play();
@@ -232,6 +242,7 @@
         }
 
         createBoard();
+        updateStatus(); // Gọi lần đầu để hiển thị ảnh O ban đầu
     </script>
 </body>
 </html>
