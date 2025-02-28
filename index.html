@@ -20,10 +20,12 @@
             margin-bottom: 20px;
             display: flex;
             align-items: center;
+            position: relative; /* Để điều chỉnh vị trí */
+            top: -10px; /* Dịch lên trên 10px */
         }
         #turn-indicator {
-            width: 40px; /* Kích thước cố định cho ảnh */
-            height: 40px;
+            width: 50px; /* Tăng từ 40px lên 50px để lớn hơn */
+            height: 50px;
             margin-right: 15px;
         }
         #turn-indicator img {
@@ -242,7 +244,7 @@
         }
 
         createBoard();
-        updateStatus(); // Gọi lần đầu để hiển thị ảnh O ban đầu
+        updateStatus();
     </script>
 </body>
 </html>
