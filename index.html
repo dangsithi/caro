@@ -48,17 +48,19 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: calc(4vw + 10px);
-            font-weight: bold;
             cursor: pointer;
             user-select: none;
             aspect-ratio: 1 / 1;
+            position: relative; /* Để chứa ảnh */
         }
-        .cell.x {
-            color: red;
-        }
-        .cell.o {
-            color: blue;
+        .cell img {
+            width: 80%; /* Điều chỉnh kích thước ảnh */
+            height: 80%;
+            object-fit: contain; /* Giữ tỷ lệ ảnh */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* Căn giữa ảnh */
         }
         .cell:hover {
             background-color: #ddd;
@@ -124,10 +126,12 @@
         }
 
         function handleClick(index) {
-            if (!gameActive || cells[index].textContent !== '') return;
+            if (!gameActive || cells[index].innerHTML !== '') return;
 
-            cells[index].textContent = currentPlayer;
-            cells[index].classList.add(currentPlayer.toLowerCase());
+            const img = document.createElement('img');
+            img.src = currentPlayer === 'X' ? 'x.png' : 'o.png';
+            cells[index].appendChild(img);
+            cells[index].dataset.player = currentPlayer; // Lưu player để kiểm tra thắng
             clickSound.play();
 
             const winLine = checkWin();
@@ -136,7 +140,7 @@
                 gameActive = false;
                 drawWinLine(winLine);
                 winSound.play();
-            } else if (cells.every(cell => cell.textContent !== '')) {
+            } else if (cells.every(cell => cell.innerHTML !== '')) {
                 status.textContent = 'Hòa!';
                 gameActive = false;
             } else {
@@ -168,7 +172,7 @@
                 }
             }
             for (const condition of winConditions) {
-                if (condition.every(index => cells[index].textContent === currentPlayer)) {
+                if (condition.every(index => cells[index].dataset.player === currentPlayer)) {
                     return condition;
                 }
             }
@@ -207,8 +211,8 @@
 
         function resetGame() {
             cells.forEach(cell => {
-                cell.textContent = '';
-                cell.classList.remove('x', 'o');
+                cell.innerHTML = '';
+                cell.dataset.player = ''; // Xóa dữ liệu player
             });
             const lines = board.getElementsByClassName('line');
             while (lines.length > 0) lines[0].remove();
