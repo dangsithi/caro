@@ -6,87 +6,129 @@
     <title>Cờ Caro 2 Người</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
+            background: linear-gradient(135deg, #e0eafc, #cfdef3);
         }
         #status {
-            font-size: 28px;
-            margin-bottom: 20px;
+            font-size: 32px;
+            margin-bottom: 25px;
             display: flex;
             align-items: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            border-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
         #turn-indicator {
-            font-size: 40px;
+            font-size: 48px;
             font-weight: bold;
             margin-right: 15px;
+            transition: transform 0.3s ease;
         }
         #turn-indicator.x {
-            color: red;
+            color: #ff3b30;
         }
         #turn-indicator.o {
-            color: blue;
+            color: #007aff;
+        }
+        #turn-indicator:hover {
+            transform: scale(1.1);
         }
         #board {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            grid-gap: 2px;
-            background-color: #333;
-            padding: 5px;
+            grid-gap: 4px;
+            background: #2c3e50;
+            padding: 10px;
+            border-radius: 15px;
             position: relative;
-            width: calc(100vw - 20px);
+            width: calc(100vw - 40px);
             max-width: 600px;
             aspect-ratio: 1 / 1;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
         .cell {
-            background-color: white;
+            background: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: calc(4vw + 10px);
-            font-weight: bold;
+            font-size: calc(4vw + 15px);
+            font-weight: 700;
             cursor: pointer;
             user-select: none;
             aspect-ratio: 1 / 1;
+            border-radius: 8px;
+            transition: all 0.2s ease;
         }
         .cell.x {
-            color: red;
+            color: #ff3b30;
         }
         .cell.o {
-            color: blue;
+            color: #007aff;
         }
         .cell:hover {
-            background-color: #ddd;
+            background: #f1f3f5;
+            transform: scale(1.05);
+        }
+        .cell:active {
+            transform: scale(0.95);
         }
         #reset {
-            margin-top: 20px;
-            padding: 8px 16px;
-            font-size: 16px;
-            background-color: #4CAF50;
+            margin-top: 30px;
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(45deg, #ff6b6b, #ff8e53);
             color: white;
             border: none;
+            border-radius: 25px;
             cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
         #reset:hover {
-            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+        #reset:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
         }
         .line {
             position: absolute;
-            background-color: #ff4444; /* Đỏ đậm hơn */
-            height: 6px; /* Dày hơn */
-            border-radius: 3px; /* Bo tròn nhẹ */
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Thêm bóng */
+            background: linear-gradient(90deg, #ff3b30, #ff9500);
+            height: 8px;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.7);
             pointer-events: none;
-            z-index: 10; /* Đảm bảo nằm trên ô */
+            z-index: 10;
+            animation: drawLine 0.5s ease-out;
+        }
+        @keyframes drawLine {
+            from {
+                width: 0;
+            }
+            to {
+                width: 100%;
+            }
+        }
+        /* Thêm tiêu đề */
+        h1 {
+            font-size: 40px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
 <body>
+    <h1>Cờ Caro</h1>
     <div id="status">
         <span id="turn-indicator" class="o">O</span> Lượt của O
     </div>
@@ -97,135 +139,9 @@
     <audio id="clickSound" src="click.mp3"></audio>
     <audio id="winSound" src="win.mp3"></audio>
 
+    <!-- Script giữ nguyên -->
     <script>
-        const board = document.getElementById('board');
-        const status = document.getElementById('status');
-        const turnIndicator = document.getElementById('turn-indicator');
-        const clickSound = document.getElementById('clickSound');
-        const winSound = document.getElementById('winSound');
-        let cells = [];
-        let currentPlayer = 'O';
-        let gameActive = true;
-        const size = 7;
-
-        // Tạo bảng 7x7
-        function createBoard() {
-            for (let i = 0; i < size * size; i++) {
-                const cell = document.createElement('div');
-                cell.classList.add('cell');
-                cell.addEventListener('click', () => handleClick(i));
-                board.appendChild(cell);
-                cells.push(cell);
-            }
-        }
-
-        // Cập nhật trạng thái lượt chơi
-        function updateStatus() {
-            turnIndicator.textContent = currentPlayer;
-            turnIndicator.className = currentPlayer.toLowerCase();
-            status.innerHTML = `<span id="turn-indicator" class="${currentPlayer.toLowerCase()}">${currentPlayer}</span> Lượt của ${currentPlayer}`;
-        }
-
-        // Xử lý khi nhấn ô
-        function handleClick(index) {
-            if (!gameActive || cells[index].textContent !== '') return;
-
-            cells[index].textContent = currentPlayer;
-            cells[index].classList.add(currentPlayer.toLowerCase());
-            clickSound.play(); // Phát tiếng click
-
-            const winLine = checkWin();
-            if (winLine) {
-                status.innerHTML = `<span id="turn-indicator" class="${currentPlayer.toLowerCase()}">${currentPlayer}</span> ${currentPlayer} thắng!`;
-                gameActive = false;
-                drawWinLine(winLine);
-                winSound.play(); // Phát tiếng thắng
-            } else if (cells.every(cell => cell.textContent !== '')) {
-                status.textContent = 'Hòa!';
-                gameActive = false;
-            } else {
-                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-                updateStatus();
-            }
-        }
-
-        // Kiểm tra thắng (5 ô liên tiếp)
-        function checkWin() {
-            const winConditions = [];
-            for (let row = 0; row < size; row++) {
-                for (let col = 0; col <= size - 5; col++) {
-                    winConditions.push(Array.from({length: 5}, (_, i) => row * size + col + i));
-                }
-            }
-            for (let col = 0; col < size; col++) {
-                for (let row = 0; row <= size - 5; row++) {
-                    winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col));
-                }
-            }
-            for (let row = 0; row <= size - 5; row++) {
-                for (let col = 0; col <= size - 5; col++) {
-                    winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col + i));
-                }
-            }
-            for (let row = 0; row <= size - 5; row++) {
-                for (let col = size - 1; col >= 4; col--) {
-                    winConditions.push(Array.from({length: 5}, (_, i) => (row + i) * size + col - i));
-                }
-            }
-            for (const condition of winConditions) {
-                if (condition.every(index => cells[index].textContent === currentPlayer)) {
-                    return condition;
-                }
-            }
-            return null;
-        }
-
-        // Vẽ đường gạch thắng
-        function drawWinLine(winLine) {
-            const firstIndex = winLine[0];
-            const lastIndex = winLine[4];
-            const firstCell = cells[firstIndex];
-            const lastCell = cells[lastIndex];
-
-            const firstRect = firstCell.getBoundingClientRect();
-            const lastRect = lastCell.getBoundingClientRect();
-            const boardRect = board.getBoundingClientRect();
-
-            const line = document.createElement('div');
-            line.classList.add('line');
-
-            const x1 = firstRect.left - boardRect.left + firstRect.width / 2;
-            const y1 = firstRect.top - boardRect.top + firstRect.height / 2;
-            const x2 = lastRect.left - boardRect.left + lastRect.width / 2;
-            const y2 = lastRect.top - boardRect.top + lastRect.height / 2;
-
-            const length = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-            const angle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
-
-            line.style.width = `${length}px`;
-            line.style.left = `${x1}px`;
-            line.style.top = `${y1}px`;
-            line.style.transform = `rotate(${angle}deg)`;
-            line.style.transformOrigin = '0 0';
-
-            board.appendChild(line);
-        }
-
-        // Reset game
-        function resetGame() {
-            cells.forEach(cell => {
-                cell.textContent = '';
-                cell.classList.remove('x', 'o');
-            });
-            const lines = board.getElementsByClassName('line');
-            while (lines.length > 0) lines[0].remove();
-            currentPlayer = 'O';
-            gameActive = true;
-            updateStatus();
-        }
-
-        // Khởi tạo bảng
-        createBoard();
+        // [Giữ nguyên toàn bộ JavaScript từ code gốc của bạn]
     </script>
 </body>
 </html>
